@@ -28,24 +28,28 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
+          cache-dependency-path: GoodFoodWebAdmin/goodfoodwebadmin/package-lock.json
+          
       # Install dependencies
       - run: npm ci
+        working-directory: GoodFoodWebAdmin/goodfoodwebadmin
 
       # Build the project
       - run: npm run build --if-present
+        working-directory: GoodFoodWebAdmin/goodfoodwebadmin
 
       # Run tests
       - run: npm test
+        working-directory: GoodFoodWebAdmin/goodfoodwebadmin
 
       # SonarQube scan
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: GoodFoodWebAdmin/goodfoodwebadmin
 
-      # Optional: Fail the job if the quality gate fails
       - name: Check SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@v1
         timeout-minutes: 5
