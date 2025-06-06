@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/shadcn/button";
+import { Button } from "@/components/Ui/shadcn/button";
 import { useLogout } from "@/components/hooks/useLogout";
 
 const LogoutSection: React.FC = () => {

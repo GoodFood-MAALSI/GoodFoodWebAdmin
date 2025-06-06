@@ -1,11 +1,10 @@
 "use client";
 
 import { useAuthForm } from "@/components/hooks/useAuthForm";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/shadcn/form";
-import { Input } from "@/components/ui/shadcn/input";
-import { Button } from "@/components/ui/shadcn/button";
-import { loginTexts } from "@/app/auth/constants";
-import { ForgotPasswordModal } from "@/components/forms/forgotPasswordModal";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/Ui/shadcn/form";
+import { Input } from "@/components/Ui/shadcn/input";
+import { Button } from "@/components/Ui/shadcn/button";
+import { loginTexts } from "@/app/constants";
 
 export default function AuthForm() {
   const { form, handleSubmit, onSubmit, router } = useAuthForm();
@@ -57,20 +56,8 @@ export default function AuthForm() {
           >
             {loginTexts.submitButton}
           </Button>
-          <ForgotPasswordModal />
         </form>
       </Form>
-
-      <div className="text-center">
-        <p>{loginTexts.footer.prompt}</p>
-        <Button
-          onClick={() => router.push("/create-company")}
-          className="mt-2 w-full text-white hover:opacity-90"
-          style={{ backgroundColor: loginTexts.colors.secondary }}
-        >
-          {loginTexts.footer.createButton}
-        </Button>
-      </div>
     </>
   );
 }

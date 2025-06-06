@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { loginSchema } from "@/lib/validators/auth";
-import { loginTexts } from "@/app/auth/constants";
+import { loginTexts } from "@/app/constants";
 import type { LoginForm } from "@/types/auth";
 import type { LoginResponse } from "@/types/api";
 
