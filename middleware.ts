@@ -1,82 +1,1 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-const COOLDOWN_MS = 30_000 // 30 seconds
-
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.get('token')?.value
-  const refreshToken = req.cookies.get('refreshToken')?.value
-  const tokenExpires = req.cookies.get('tokenExpires')?.value
-  const lastCheck = req.cookies.get('lastRefreshCheck')?.value
-
-  if (!token || !refreshToken || !tokenExpires) {
-    console.log("Cookies middleware missing:", { token, refreshToken, tokenExpires })
-    return NextResponse.redirect(new URL('/auth', req.url))
-  }
-
-  const now = Date.now()
-
-  if (lastCheck && now - parseInt(lastCheck) < COOLDOWN_MS) {
-    return NextResponse.next()
-  }
-
-  const tokenExp = parseInt(tokenExpires)
-  const iat = getIatFromJWT(token)
-
-  if (!iat || isNaN(tokenExp)) {
-    console.warn('Invalid token timestamps')
-    return NextResponse.redirect(new URL('/auth', req.url))
-  }
-
-  const lifetime = tokenExp - iat * 1000
-  const remaining = tokenExp - now
-  const threshold = lifetime * 0.1
-
-  const res = NextResponse.next()
-
-  res.cookies.set('lastRefreshCheck', now.toString(), {
-    httpOnly: true,
-    path: '/',
-  })
-
-  if (remaining < threshold) {
-    try {
-      const refresh = await fetch('http://localhost:8080/restaurateur/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${refreshToken}`,
-          Accept: '*/*',
-        },
-      })
-
-      if (!refresh.ok) {
-        console.warn('Token refresh failed')
-        return NextResponse.redirect(new URL('/auth', req.url))
-      }
-
-      const { token: newToken, tokenExpires: newExp } = await refresh.json()
-
-      res.cookies.set('token', newToken, { httpOnly: true, path: '/' })
-      res.cookies.set('tokenExpires', newExp.toString(), { httpOnly: true, path: '/' })
-    } catch (e) {
-      console.error('Refresh error:', e)
-      return NextResponse.redirect(new URL('/auth', req.url))
-    }
-  }
-
-  return res
-}
-
-function getIatFromJWT(token: string): number {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.iat
-  } catch {
-    return 0
-  }
-}
-
-export const config = {
-  matcher: [
-    '/(create-company|create-menu|profile|restaurants)/:path*',
-  ],
-}
+import { NextRequest, NextResponse } from 'next/server'export function middleware(req: NextRequest) {  const { pathname } = req.nextUrl  if (    pathname.startsWith('/_next') ||    pathname.startsWith('/favicon') ||    pathname.includes('.') ||    pathname.startsWith('/api/')  ) {    return NextResponse.next()  }  const accessToken = req.cookies.get('accessToken')?.value  const forcePasswordChange = req.cookies.get('forcePasswordChange')?.value  const isAuthenticated = !!accessToken  const needsPasswordChange = forcePasswordChange === 'true'  if (pathname === '/') {    const response = NextResponse.next()    response.cookies.delete('accessToken')    response.cookies.delete('refreshToken')    response.cookies.delete('forcePasswordChange')    return response  }  if (pathname === '/' && !isAuthenticated) {    return NextResponse.next()  }  if (!isAuthenticated) {    return NextResponse.redirect(new URL('/', req.url))  }  if (isAuthenticated && needsPasswordChange) {    if (pathname === '/change-password') {      return NextResponse.next()    }    return NextResponse.redirect(new URL('/change-password', req.url))  }  if (isAuthenticated && !needsPasswordChange && pathname === '/change-password') {    return NextResponse.redirect(new URL('/dashboard', req.url))  }  return NextResponse.next()}export const config = {  matcher: [    '/((?!_next/static|_next/image|favicon.ico|api).*)',  ],}
