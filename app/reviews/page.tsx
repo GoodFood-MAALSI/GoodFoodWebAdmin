@@ -1,0 +1,1 @@
+import ReviewsManagement from "@/components/ReviewsManagement";export default function ReviewsPage() {  return <ReviewsManagement />;}
