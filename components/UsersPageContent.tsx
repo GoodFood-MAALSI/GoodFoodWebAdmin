@@ -7,12 +7,12 @@ import { Button } from "@/components/Ui/shadcn/button";
 import { Users, Shield, UserCheck, Truck } from "lucide-react";
 
 export default function UsersPageContent() {
-  const { status, isSuperAdmin } = useStatusCheck();
+  const { status, isSuperAdmin, isAdmin } = useStatusCheck();
   const [activeTab, setActiveTab] = useState<'basic' | 'admin' | 'delivery'>('basic');
 
   return (
     <div className="space-y-6">
-      {isSuperAdmin && (
+      {isAdmin && (
         <div className="flex space-x-4 border-b border-gray-200">
           <Button
             variant={activeTab === 'basic' ? 'default' : 'ghost'}
@@ -22,14 +22,16 @@ export default function UsersPageContent() {
             <Users className="w-4 h-4" />
             <span>Utilisateurs Restaurateurs</span>
           </Button>
-          <Button
-            variant={activeTab === 'admin' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('admin')}
-            className="flex items-center space-x-2"
-          >
-            <Shield className="w-4 h-4" />
-            <span>Utilisateurs Administrateurs</span>
-          </Button>
+          {isSuperAdmin && (
+            <Button
+              variant={activeTab === 'admin' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('admin')}
+              className="flex items-center space-x-2"
+            >
+              <Shield className="w-4 h-4" />
+              <span>Utilisateurs Administrateurs</span>
+            </Button>
+          )}
           <Button
             variant={activeTab === 'delivery' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('delivery')}
@@ -41,7 +43,7 @@ export default function UsersPageContent() {
         </div>
       )}
 
-      {!isSuperAdmin && (
+      {!isAdmin && (
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader>
             <CardTitle className="flex items-center text-blue-800">
@@ -75,7 +77,7 @@ export default function UsersPageContent() {
         <UsersManagement userType="admin" />
       )}
 
-      {activeTab === 'delivery' && isSuperAdmin && (
+      {activeTab === 'delivery' && isAdmin && (
         <UsersManagement userType="delivery" />
       )}
     </div>

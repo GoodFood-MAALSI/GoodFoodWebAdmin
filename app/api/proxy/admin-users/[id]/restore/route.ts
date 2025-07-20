@@ -5,9 +5,11 @@ const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     if (!isAuthenticated(request)) {
       return NextResponse.json(
         { message: "Non autorisé" },
@@ -30,40 +32,10 @@ export async function PATCH(
       );
     }
 
-    // First, get the user to check if they're a super-admin
-    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
-      method: "GET",
-      headers: getAuthHeaders(request),
-    });
+    // Skip the pre-check since backend only allows access to own account
+    // Instead, attempt the restore operation directly and let backend handle validation
 
-    if (!checkResponse.ok) {
-      const errorText = await checkResponse.text();
-      let error;
-      try {
-        error = JSON.parse(errorText);
-      } catch (jsonError) {
-        return NextResponse.json(
-          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
-          { status: checkResponse.status }
-        );
-      }
-      return NextResponse.json(
-        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
-        { status: checkResponse.status }
-      );
-    }
-
-    const userData = await checkResponse.json();
-    
-    // Prevent management of super-admin users
-    if (userData.role === "super-admin") {
-      return NextResponse.json(
-        { message: "Les utilisateurs super-administrateurs ne peuvent pas être restaurés via cette interface" },
-        { status: 403 }
-      );
-    }
-
-    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}/restore`, {
+    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${id}/restore`, {
       method: "PATCH",
       headers: getAuthHeaders(request),
     });

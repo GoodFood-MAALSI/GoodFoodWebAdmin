@@ -16,6 +16,11 @@ function UsersPageContentWrapper() {
         router.push("/");
         return;
       }
+      // Check if user is suspended
+      if (status?.user?.status === 'suspended') {
+        router.push("/notallowed");
+        return;
+      }
     }
   }, [status, loading, error, router]);
 

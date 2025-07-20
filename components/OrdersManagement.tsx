@@ -353,7 +353,11 @@ export default function OrdersManagement() {
       variant: "destructive",
       isVisible: (item: unknown) => {
         const order = item as Order;
-        return order.status.name === "En attente de l'acceptation du restaurant";
+        const statusName = order.status.name.toLowerCase().trim();
+        return statusName === "en attente de l'acceptation du restaurant" ||
+               statusName === "en attente de prise en charge par un livreur" ||
+               statusName === "acceptée par le restaurant" ||
+               statusName === "acceptée";
       },
       requiresConfirmation: true,
       confirmationMessage: "Êtes-vous sûr de vouloir annuler cette commande ?",
