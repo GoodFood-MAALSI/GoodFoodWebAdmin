@@ -5,9 +5,11 @@ const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     if (!isAuthenticated(request)) {
       return NextResponse.json(
         { message: "Non autorisé" },
@@ -30,40 +32,10 @@ export async function GET(
       );
     }
 
-    // First, get the user to check if they're a super-admin
-    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
-      method: "GET",
-      headers: getAuthHeaders(request),
-    });
+    // Skip the pre-check since backend only allows access to own account
+    // Instead, attempt the operation directly and let backend handle validation
 
-    if (!checkResponse.ok) {
-      const errorText = await checkResponse.text();
-      let error;
-      try {
-        error = JSON.parse(errorText);
-      } catch (jsonError) {
-        return NextResponse.json(
-          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
-          { status: checkResponse.status }
-        );
-      }
-      return NextResponse.json(
-        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
-        { status: checkResponse.status }
-      );
-    }
-
-    const userData = await checkResponse.json();
-    
-    // Prevent management of super-admin users
-    if (userData.role === "super-admin") {
-      return NextResponse.json(
-        { message: "Les utilisateurs super-administrateurs ne peuvent pas être gérés via cette interface" },
-        { status: 403 }
-      );
-    }
-
-    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${id}`, {
       method: "GET",
       headers: getAuthHeaders(request),
     });
@@ -97,9 +69,11 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     if (!isAuthenticated(request)) {
       return NextResponse.json(
         { message: "Non autorisé" },
@@ -123,7 +97,7 @@ export async function PATCH(
     }
 
     // First, get the user to check if they're a super-admin
-    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${id}`, {
       method: "GET",
       headers: getAuthHeaders(request),
     });
@@ -157,7 +131,7 @@ export async function PATCH(
 
     const body = await request.json();
 
-    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${id}`, {
       method: "PATCH",
       headers: {
         ...getAuthHeaders(request),
@@ -195,9 +169,11 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     if (!isAuthenticated(request)) {
       return NextResponse.json(
         { message: "Non autorisé" },
@@ -221,7 +197,7 @@ export async function DELETE(
     }
 
     // First, get the user to check if they're a super-admin
-    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${id}`, {
       method: "GET",
       headers: getAuthHeaders(request),
     });
@@ -253,7 +229,7 @@ export async function DELETE(
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+    const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${id}`, {
       method: "DELETE",
       headers: getAuthHeaders(request),
     });

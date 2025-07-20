@@ -45,10 +45,24 @@ export async function POST(request: NextRequest) {
       );
     }
     const responseData = data.data || data;
-    const nextResponse = NextResponse.json(data, { status: 200 });
     const accessToken = responseData.token;
     const refreshToken = responseData.refreshToken;
     const forcePasswordChange = responseData.force_password_change || responseData.user?.force_password_change;
+    const userStatus = responseData.user?.status;
+
+    // Check if user is suspended
+    if (userStatus === "suspended") {
+      return NextResponse.json(
+        { 
+          message: "Compte suspendu", 
+          suspended: true,
+          redirectTo: "/notallowed"
+        },
+        { status: 403 }
+      );
+    }
+    
+    const nextResponse = NextResponse.json(data, { status: 200 });
     
     if (accessToken) {
       nextResponse.cookies.set("accessToken", accessToken, {

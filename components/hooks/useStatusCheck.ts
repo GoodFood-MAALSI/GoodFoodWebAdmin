@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 interface AuthStatus {
   authenticated: boolean;
   force_password_change?: boolean;
@@ -34,15 +36,26 @@ export function useStatusCheck() {
   const [status, setStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
   const checkStatus = async () => {
+    console.log("useStatusCheck - checkStatus called");
     try {
       setLoading(true);
       setError(null);
+      console.log("useStatusCheck - Making fetch request to /api/proxy/auth/status");
       const response = await fetch("/api/proxy/auth/status", {
         method: "GET",
         credentials: "include",
       });
       const data = await response.json();
+      console.log("useStatusCheck - Response received:", data);
+      
+      // Check for suspended user response
+      if (data.suspended || (data.message && data.message.toLowerCase().includes('suspendu'))) {
+        router.push(data.redirectTo || '/notallowed');
+        return;
+      }
       
       if (!response.ok) {
         setStatus({ authenticated: false, message: data.message });
@@ -57,6 +70,12 @@ export function useStatusCheck() {
         message: data.message
       };
 
+      // Check if user is suspended
+      if (normalizedStatus.user?.status === 'suspended') {
+        router.push('/notallowed');
+        return;
+      }
+
       setStatus(normalizedStatus);
     } catch (err) {
       setStatus({ authenticated: false });
@@ -65,8 +84,15 @@ export function useStatusCheck() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
+    console.log("useStatusCheck - useEffect triggered, calling checkStatus");
     checkStatus();
+
+    // Set up periodic status checking (every 5 minutes) to catch status changes
+    const interval = setInterval(checkStatus, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
   return {
     status,
@@ -81,5 +107,7 @@ export function useStatusCheck() {
     userId: status?.user?.id || null,
     userEmail: status?.user?.email || null,
     userName: status?.user ? `${status.user.first_name} ${status.user.last_name}`.trim() : null,
+    userStatus: status?.user?.status || null,
+    isSuspended: status?.user?.status === "suspended",
   };
 }

@@ -5,11 +5,10 @@ const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
-    const { id } = resolvedParams;
+    const { id } = await params;
     
     if (!isAuthenticated(request)) {
       return NextResponse.json(

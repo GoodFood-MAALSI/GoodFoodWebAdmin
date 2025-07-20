@@ -154,14 +154,23 @@ export default function UsersManagement({ userType }: UsersManagementProps) {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la suspension de l'utilisateur");
+      if (response.ok) {
+        toast.success("Utilisateur suspendu avec succès");
+      } else {
+        const errorData = await response.json().catch(() => null);
+        if (response.status === 400 && errorData?.message?.includes("déjà suspendu")) {
+          toast.info("L'utilisateur est déjà suspendu");
+        } else {
+          toast.error(errorData?.message || "Erreur lors de la suspension de l'utilisateur");
+        }
       }
 
+      // Always refresh the data to show current state
       await loadUsers();
-      toast.success("Utilisateur suspendu avec succès");
     } catch (err) {
       toast.error("Impossible de suspendre l'utilisateur");
+      // Still refresh to show current state
+      await loadUsers();
     }
   };
 
@@ -176,14 +185,23 @@ export default function UsersManagement({ userType }: UsersManagementProps) {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la réactivation de l'utilisateur");
+      if (response.ok) {
+        toast.success("Utilisateur réactivé avec succès");
+      } else {
+        const errorData = await response.json().catch(() => null);
+        if (response.status === 400 && (errorData?.message?.includes("déjà actif") || errorData?.message?.includes("already active"))) {
+          toast.info("L'utilisateur est déjà actif");
+        } else {
+          toast.error(errorData?.message || "Erreur lors de la réactivation de l'utilisateur");
+        }
       }
 
+      // Always refresh the data to show current state
       await loadUsers();
-      toast.success("Utilisateur réactivé avec succès");
     } catch (err) {
       toast.error("Impossible de réactiver l'utilisateur");
+      // Still refresh to show current state
+      await loadUsers();
     }
   };
 

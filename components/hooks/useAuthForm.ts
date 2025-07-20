@@ -29,6 +29,7 @@ export function useAuthForm() {
         }),
         credentials: "include",
       });
+      
       if (!response.ok) {
         const errorText = await response.text();
         let errorData;
@@ -37,8 +38,17 @@ export function useAuthForm() {
         } catch {
           throw new Error("Erreur de serveur - réponse HTML reçue");
         }
+
+        // Handle suspended user
+        if (response.status === 403 && errorData.suspended && errorData.redirectTo) {
+          toast.error(errorData.message || "Compte suspendu");
+          window.location.href = errorData.redirectTo;
+          return;
+        }
+
         throw new Error(errorData.message || loginTexts.error.default);
       }
+      
       const loginResponse = (await response.json()) as LoginResponse;  
       const forcePasswordChange = loginResponse.data?.force_password_change || loginResponse.data?.user?.force_password_change;
       
