@@ -86,7 +86,7 @@ export default function UsersManagement({ userType }: UsersManagementProps) {
       params.append("page", page.toString());
       params.append("limit", "10");
 
-      if (filters && filters.status && filters.status !== "all") {
+      if (filters && filters.status && filters.status !== "__all__") {
         params.append("status", String(filters.status));
       }
 
@@ -370,7 +370,6 @@ export default function UsersManagement({ userType }: UsersManagementProps) {
       label: "Statut",
       type: "select",
       options: [
-        { value: "all", label: "Tous les statuts" },
         { value: "active", label: "Actif" },
         { value: "suspended", label: "Suspendu" },
         { value: "inactive", label: "Inactif" },

@@ -95,8 +95,8 @@ export default function RestaurantsManagement() {
       params.append('page', page.toString());
       params.append('limit', '10');
       
-      if (filters && filters.status && filters.status !== "all") params.append('status', String(filters.status));
-      if (filters && filters.is_open !== undefined && filters.is_open !== "all") params.append('is_open', String(filters.is_open));
+      if (filters && filters.status && filters.status !== "__all__") params.append('status', String(filters.status));
+      if (filters && filters.is_open !== undefined && filters.is_open !== "__all__") params.append('is_open', String(filters.is_open));
       if (filters && filters.city) params.append('city', String(filters.city));
       if (filters && filters.restaurant_type) params.append('restaurant_type', String(filters.restaurant_type));
       
@@ -357,7 +357,6 @@ export default function RestaurantsManagement() {
       label: "Statut",
       type: "select",
       options: [
-        { value: "all", label: "Tous les statuts" },
         { value: "active", label: "Actif" },
         { value: "suspended", label: "Suspendu" },
         { value: "inactive", label: "Inactif" }
@@ -368,7 +367,6 @@ export default function RestaurantsManagement() {
       label: "Ouverture",
       type: "select",
       options: [
-        { value: "all", label: "Tous" },
         { value: "true", label: "Ouvert" },
         { value: "false", label: "Fermé" }
       ]

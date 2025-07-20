@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthHeaders, isAuthenticated } from "@/lib/serverAuth";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
@@ -7,6 +8,13 @@ export async function GET(
   { params }: { params: { path: string[] } }
 ) {
   try {
+    if (!isAuthenticated(request)) {
+      return NextResponse.json(
+        { message: "Non autorisé" },
+        { status: 401 }
+      );
+    }
+
     const uploadPath = params.path.join('/');
     const uploadUrl = `${API_BASE_URL}/restaurateur/api/uploads/${uploadPath}`;
     
@@ -14,6 +22,7 @@ export async function GET(
     const response = await fetch(uploadUrl, {
       method: "GET",
       headers: {
+        ...getAuthHeaders(request),
         'User-Agent': 'GoodFood-Admin/1.0',
       },
     });

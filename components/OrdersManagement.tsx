@@ -59,7 +59,7 @@ interface Order {
   lat: string;
   created_at: string;
   updated_at: string;
-  orderItems: OrderItem[];
+  orderItems?: OrderItem[];
   status: OrderStatus;
 }
 
@@ -97,9 +97,20 @@ export default function OrdersManagement() {
   };
 
   const getOrderStats = () => {
+    if (!orders || !Array.isArray(orders)) {
+      return {
+        totalItems: 0,
+        additionalStats: [
+          { label: "En attente", value: 0, icon: Clock },
+          { label: "En livraison", value: 0, icon: Truck },
+          { label: "Chiffre d'affaires", value: "0.00€", icon: CreditCard }
+        ]
+      };
+    }
+
     const totalOrders = orders.length;
-    const pendingOrders = orders.filter(order => order.status.name === "En attente de l'acceptation du restaurant").length;
-    const inDeliveryOrders = orders.filter(order => order.status.name === "En livraison").length;
+    const pendingOrders = orders.filter(order => order.status?.name === "En attente de l'acceptation du restaurant").length;
+    const inDeliveryOrders = orders.filter(order => order.status?.name === "En livraison").length;
     const totalRevenue = orders.reduce((sum, order) => sum + getTotalPrice(order), 0);
 
     return {
@@ -287,12 +298,12 @@ export default function OrdersManagement() {
       width: "150px",
       renderCell: (_: unknown, item: unknown) => {
         const order = item as Order;
-        const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+        const totalItems = (order.orderItems || []).reduce((sum, item) => sum + item.quantity, 0);
         return (
           <div className="text-sm">
             <div className="font-medium">{totalItems} article(s)</div>
             <div className="text-xs text-gray-500">
-              {order.orderItems.length} type(s)
+              {(order.orderItems || []).length} type(s)
             </div>
           </div>
         );
@@ -370,25 +381,25 @@ export default function OrdersManagement() {
   const stats: ListingStats[] = [
     {
       label: "Total Commandes",
-      value: orders.length,
+      value: orders?.length || 0,
       icon: <ShoppingCart className="w-6 h-6" />,
       color: colors.primary
     },
     {
       label: "En Attente",
-      value: orders.filter(o => o.status.name === "En attente de l'acceptation du restaurant").length,
+      value: orders?.filter(o => o.status?.name === "En attente de l'acceptation du restaurant").length || 0,
       icon: <Clock className="w-6 h-6" />,
       color: colors.warning
     },
     {
       label: "En Livraison",
-      value: orders.filter(o => o.status.name === "En livraison").length,
+      value: orders?.filter(o => o.status?.name === "En livraison").length || 0,
       icon: <Truck className="w-6 h-6" />,
       color: colors.info
     },
     {
       label: "Chiffre d'Affaires",
-      value: orders.length > 0
+      value: orders && orders.length > 0
         ? `${orders.reduce((sum, o) => sum + getTotalPrice(o), 0).toFixed(2)} €`
         : "0 €",
       icon: <CreditCard className="w-6 h-6" />,
@@ -477,7 +488,7 @@ export default function OrdersManagement() {
                 <div className="text-sm">
                   <span className="font-medium">{formatPrice(getTotalPrice(order))}</span>
                   <span className="text-gray-500 ml-2">
-                    ({order.orderItems.reduce((sum, item) => sum + item.quantity, 0)} articles)
+                    ({(order.orderItems || []).reduce((sum, item) => sum + item.quantity, 0)} articles)
                   </span>
                 </div>
               </div>
