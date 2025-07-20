@@ -41,6 +41,15 @@ export async function GET(
     }
 
     const data = await response.json();
+    
+    // Prevent access to super-admin users
+    if (data.role === "super-admin" || (data.data && data.data.role === "super-admin")) {
+      return NextResponse.json(
+        { message: "Utilisateur non trouvé" },
+        { status: 404 }
+      );
+    }
+    
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -62,6 +71,39 @@ export async function PATCH(
       return NextResponse.json(
         { message: "Non autorisé" },
         { status: 401 }
+      );
+    }
+
+    // First, get the user to check if they're a super-admin
+    const checkResponse = await fetch(`${API_BASE_URL}/restaurateur/api/users/${id}`, {
+      method: "GET",
+      headers: getAuthHeaders(request),
+    });
+
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      let error;
+      try {
+        error = JSON.parse(errorText);
+      } catch (jsonError) {
+        return NextResponse.json(
+          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
+          { status: checkResponse.status }
+        );
+      }
+      return NextResponse.json(
+        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
+        { status: checkResponse.status }
+      );
+    }
+
+    const userData = await checkResponse.json();
+    
+    // Prevent management of super-admin users
+    if (userData.role === "super-admin" || (userData.data && userData.data.role === "super-admin")) {
+      return NextResponse.json(
+        { message: "Utilisateur non trouvé" },
+        { status: 404 }
       );
     }
 
@@ -115,6 +157,39 @@ export async function DELETE(
       return NextResponse.json(
         { message: "Non autorisé" },
         { status: 401 }
+      );
+    }
+
+    // First, get the user to check if they're a super-admin
+    const checkResponse = await fetch(`${API_BASE_URL}/restaurateur/api/users/${id}`, {
+      method: "GET",
+      headers: getAuthHeaders(request),
+    });
+
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      let error;
+      try {
+        error = JSON.parse(errorText);
+      } catch (jsonError) {
+        return NextResponse.json(
+          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
+          { status: checkResponse.status }
+        );
+      }
+      return NextResponse.json(
+        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
+        { status: checkResponse.status }
+      );
+    }
+
+    const userData = await checkResponse.json();
+    
+    // Prevent management of super-admin users
+    if (userData.role === "super-admin" || (userData.data && userData.data.role === "super-admin")) {
+      return NextResponse.json(
+        { message: "Utilisateur non trouvé" },
+        { status: 404 }
       );
     }
 

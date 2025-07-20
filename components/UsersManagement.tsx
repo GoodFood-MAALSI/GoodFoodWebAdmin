@@ -128,8 +128,11 @@ export default function UsersManagement({ userType }: UsersManagementProps) {
         total = data.length;
       }
 
+      // Filter out super-admin users from frontend display
+      usersData = usersData.filter((user: User) => user.role !== "super-admin");
+
       setUsers(usersData);
-      setTotalCount(total);
+      setTotalCount(usersData.length); // Use filtered count instead of backend total
       setError(null);
     } catch (err: unknown) {
       const error = err as Error;

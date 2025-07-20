@@ -30,6 +30,39 @@ export async function GET(
       );
     }
 
+    // First, get the user to check if they're a super-admin
+    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+      method: "GET",
+      headers: getAuthHeaders(request),
+    });
+
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      let error;
+      try {
+        error = JSON.parse(errorText);
+      } catch (jsonError) {
+        return NextResponse.json(
+          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
+          { status: checkResponse.status }
+        );
+      }
+      return NextResponse.json(
+        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
+        { status: checkResponse.status }
+      );
+    }
+
+    const userData = await checkResponse.json();
+    
+    // Prevent management of super-admin users
+    if (userData.role === "super-admin") {
+      return NextResponse.json(
+        { message: "Les utilisateurs super-administrateurs ne peuvent pas être gérés via cette interface" },
+        { status: 403 }
+      );
+    }
+
     const response = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
       method: "GET",
       headers: getAuthHeaders(request),
@@ -85,6 +118,39 @@ export async function PATCH(
     if (!isSuperAdmin(role)) {
       return NextResponse.json(
         { message: "Accès restreint aux super-administrateurs" },
+        { status: 403 }
+      );
+    }
+
+    // First, get the user to check if they're a super-admin
+    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+      method: "GET",
+      headers: getAuthHeaders(request),
+    });
+
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      let error;
+      try {
+        error = JSON.parse(errorText);
+      } catch (jsonError) {
+        return NextResponse.json(
+          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
+          { status: checkResponse.status }
+        );
+      }
+      return NextResponse.json(
+        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
+        { status: checkResponse.status }
+      );
+    }
+
+    const userData = await checkResponse.json();
+    
+    // Prevent management of super-admin users
+    if (userData.role === "super-admin") {
+      return NextResponse.json(
+        { message: "Les utilisateurs super-administrateurs ne peuvent pas être modifiés via cette interface" },
         { status: 403 }
       );
     }
@@ -150,6 +216,39 @@ export async function DELETE(
     if (!isSuperAdmin(role)) {
       return NextResponse.json(
         { message: "Accès restreint aux super-administrateurs" },
+        { status: 403 }
+      );
+    }
+
+    // First, get the user to check if they're a super-admin
+    const checkResponse = await fetch(`${API_BASE_URL}/administrateur/api/users/${params.id}`, {
+      method: "GET",
+      headers: getAuthHeaders(request),
+    });
+
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      let error;
+      try {
+        error = JSON.parse(errorText);
+      } catch (jsonError) {
+        return NextResponse.json(
+          { message: `Erreur backend: ${checkResponse.status} - ${errorText}` },
+          { status: checkResponse.status }
+        );
+      }
+      return NextResponse.json(
+        { message: error.message || "Erreur lors de la récupération de l'utilisateur" },
+        { status: checkResponse.status }
+      );
+    }
+
+    const userData = await checkResponse.json();
+    
+    // Prevent management of super-admin users
+    if (userData.role === "super-admin") {
+      return NextResponse.json(
+        { message: "Les utilisateurs super-administrateurs ne peuvent pas être supprimés via cette interface" },
         { status: 403 }
       );
     }

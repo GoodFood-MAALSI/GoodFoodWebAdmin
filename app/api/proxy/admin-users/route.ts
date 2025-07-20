@@ -65,13 +65,19 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
+    // Filter out super-admin users as they are immune to management
+    let adminUsers = data.data || data.users || data;
+    if (Array.isArray(adminUsers)) {
+      adminUsers = adminUsers.filter(user => user.role !== "super-admin");
+    }
+
     const transformedData = {
-      data: data.data || data.users || data,
+      data: adminUsers,
       pagination: data.pagination || {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: Array.isArray(data.data) ? data.data.length : Array.isArray(data.users) ? data.users.length : Array.isArray(data) ? data.length : 0,
-        totalPages: 1
+        total: Array.isArray(adminUsers) ? adminUsers.length : 0,
+        totalPages: Math.ceil((Array.isArray(adminUsers) ? adminUsers.length : 0) / parseInt(limit))
       }
     };
 
